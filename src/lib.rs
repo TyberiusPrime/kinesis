@@ -62,17 +62,17 @@ pub fn get_translation() -> Vec<u32> {
         //18
         PgUp.into(),
         //19
-        BSlash.into(), // the other backslash
+        0xF0100u32.into(), // te lowe left backslash key
         //1A
         Escape.into(),
         //1B
         0x1b,
         //0000001c
-        0x1c,
+        E.into(),
         //0000001d
-        Slash.into(),
+        Slash.into(), //label: slash
         //0000001e
-        Slash.into(), //top right
+        LBracket.into(), //top right, label bslash
         //0000001f
         Comma.into(),
         //0x20
@@ -100,7 +100,7 @@ pub fn get_translation() -> Vec<u32> {
         //0000002b
         X.into(),
         //2c
-        0x2c,
+        Tab.into(),
         //2d
         0x2d,
         //0000002e
@@ -120,7 +120,7 @@ pub fn get_translation() -> Vec<u32> {
         //00000035
         LShift.into(),
         //36
-        0,//palm1
+        Copy.into(),//palm1
         //00000037
         Kb3.into(),
         //00000038
@@ -138,7 +138,7 @@ pub fn get_translation() -> Vec<u32> {
         //0000003e
         F6.into(),
         //3f
-        0, ///palm 2
+        Paste.into(), ///palm 2
         //00000040
         Kb4.into(),
         //00000041
@@ -224,11 +224,48 @@ impl ProcessKeys<USBOut> for Debugger {
 
 pub fn get_keytokey<'a, T: USBKeyOut>(output: T) -> Keyboard<'a, T> {
     let mut k = Keyboard::new(output);
-    //k.add_handler(Box::new(Debugger::new("A".to_string())));
+    /*
+    use handlers::LayerAction::RewriteTo as RT;
+    let numpad_id = k.add_handler(Box::new(
+        handlers::Layer::new(vec![
+            (KeyCode::U, RT(KeyCode::Kb7.into())),
+            (KeyCode::I, RT(KeyCode::Kb8.into())),
+            (KeyCode::O, RT(KeyCode::Kb9.into())),
+            (KeyCode::J, RT(KeyCode::Kb4.into())),
+            (KeyCode::K, RT(KeyCode::Kb5.into())),
+            (KeyCode::L, RT(KeyCode::Kb6.into())),
+            (KeyCode::M, RT(KeyCode::Kb1.into())),
+            (KeyCode::Comma, RT(KeyCode::Kb2.into())),
+            (KeyCode::Dot, RT(KeyCode::Kb3.into())),
+            (KeyCode::Up, RT(KeyCode::Kb0.into())),
+            (KeyCode::Space, RT(KeyCode::Tab.into())),
+        ])
+    )
+    );
+    k.add_handler(premade::space_cadet_handler(KeyCode::F, numpad_id));
+    */
+    /*
+    k.add_handler(Box::new(handlers::Leader::new(
+        0xF0100u32,
+        vec![
+            (vec![KeyCode::Y], "Dr. Florian Finkernagel"),
+            (vec![KeyCode::U], "f.finkernagel@coonabibba.de"),
+            (vec![KeyCode::F], "finkernagel@imt.uni-marburg.de"),
+        ],
+        ""
+    )));
+    */
+
+
     let dvorak_id = k.add_handler(premade::dvorak());
     k.add_handler(premade::toggle_handler(KeyCode::F1, dvorak_id));
     k.output.state().enable_handler(dvorak_id);
-    //k.add_handler(Box::new(Debugger::new("B".to_string())));
+
+    k.add_handler(premade::one_shot_shift());
+    k.add_handler(premade::one_shot_ctrl());
+    k.add_handler(premade::one_shot_alt());
+    k.add_handler(premade::one_shot_gui());
+    k.add_handler(Box::new(premade::CopyPaste{}));
     k.add_handler(Box::new(handlers::USBKeyboard::new()));
     k.add_handler(Box::new(debug_handlers::TranslationHelper {}));
     return k;
